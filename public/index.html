@@ -10,13 +10,137 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.6.15/browser.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
   </head>
   <body>
     <div id="content"></div>
-    <script type="text/babel" src="scripts/example.js"></script>
+
     <script type="text/babel">
-      // To get started with this tutorial running your own code, simply remove
-      // the script tag loading scripts/example.js and start writing code here.
+
+      var data = [
+        {author: "Pete Hunt", text: "This is one comment"},
+        {author: "Jordan Walke", text: "This is *another* comment"}
+      ];
+
+
+      var CommentList = React.createClass({
+        render: function() {
+          var commentNodes = this.props.data.map(function (comment) {
+            return (
+              <Comment author={comment.author}>
+                {comment.text}
+              </Comment>
+            );
+          });
+          return (
+            <div className="commentList">
+              {commentNodes}
+            </div>
+          );
+        }
+      });
+
+
+      var Comment = React.createClass({
+        rawMarkup: function(){
+          var rawMarkup = marked(this.props.children.toString(), {sanitize:true});
+          return { __html: rawMarkup };
+        },
+
+        render: function(){
+          return(
+            <div className = "comment">
+              <h2 className = "commentAuthor">
+                {this.props.author}
+              </h2>
+              <h2>
+                <span dangerouslySetInnerHTML={this.rawMarkup()} />
+              </h2>
+            </div>
+          );
+        }
+      });
+
+      var CommentForm = React.createClass({
+        render: function(){
+          return(
+            <div className = "commentForm">
+             Hello I am a commentForm
+            </div>
+          );
+        }
+      });
+
+
+      var CommentBox = React.createClass({
+
+        loadDataFromServer: function(){
+          $.ajax({
+            url: this.props.url,
+            cache: false,
+            success: function(data){
+              this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err){
+              console.log(this.props.url, status, err.toString());
+            }.bind(this)
+          });
+        },
+
+        getInitialState : function(){
+          return {data: []};
+        },
+
+        componentDidMount: function(){
+          this.loadDataFromServer();
+          setInterval(this.loadDataFromServer, this.props.pollInterval);
+        },
+
+        render: function(){
+          console.log(this.props)
+          console.log(this.state.data)
+          return (
+            <div className="commentBox">
+              <h1>Comments</h1>
+              <CommentList data = {this.state.data}/>
+              <CommentForm />
+            </div>
+          );
+        }
+      });
+
+      ReactDOM.render(
+        <CommentBox url= "/api/comments"/>,
+        document.getElementById('content')
+      );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </script>
   </body>
 </html>
